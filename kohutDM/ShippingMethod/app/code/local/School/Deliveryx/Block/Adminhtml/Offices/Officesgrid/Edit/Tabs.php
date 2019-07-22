@@ -1,4 +1,7 @@
 <?php
+/**
+ * Class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Edit_Tabs
+ */
 class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Edit_Tabs extends Mage_Adminhtml_Block_Widget_Tabs
 {
     public function __construct()
@@ -9,6 +12,10 @@ class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Edit_Tabs extends Mag
         $this->setTitle('Office information');
     }
 
+    /**
+     * @return Mage_Core_Block_Abstract
+     * @throws Exception
+     */
     protected function _beforeToHtml()
     {
         $this->addTab('general', array(

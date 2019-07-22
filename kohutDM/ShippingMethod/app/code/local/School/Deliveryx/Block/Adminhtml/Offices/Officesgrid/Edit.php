@@ -1,9 +1,12 @@
 <?php
+/**
+ * Class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Edit
+ */
 class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Edit extends Mage_Adminhtml_Block_Widget_Form_Container
 {
     public function __construct()
     {
-        $this->_objectId = 'block_id';
+        $this->_objectId = 'entity_id';
         $this->_controller = 'adminhtml_offices_officesgrid';
         $this->_blockGroup = 'deliveryx';
 
@@ -35,7 +38,6 @@ class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Edit extends Mage_Adm
 
     /**
      * Get edit form container header text
-     *
      * @return string
      */
     public function getHeaderText()

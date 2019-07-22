@@ -1,6 +1,12 @@
 <?php
+/**
+ * Class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Edit_Tab_General
+ */
 class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Edit_Tab_General extends Mage_Adminhtml_Block_Widget_Form
 {
+    /**
+     * @return Mage_Adminhtml_Block_Widget_Form
+     */
     protected function _prepareForm()
     {
         $model = Mage::registry('deliveryx_officesgrid');
@@ -18,6 +24,7 @@ class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Edit_Tab_General exte
             'label' => Mage::helper('deliveryx')->__('Office number'),
             'title' => Mage::helper('deliveryx')->__('Office number'),
             'required' => true,
+            'class' => 'validate-alphanum'
         ));
 
         $fieldset->addField('short_address', 'text', array(

@@ -1,6 +1,12 @@
 <?php
+/**
+ * Class School_Deliveryx_Adminhtml_Deliveryx_DeliveryxgridController
+ */
 class School_Deliveryx_Adminhtml_Deliveryx_DeliveryxgridController extends Mage_Adminhtml_Controller_Action
 {
+    /**
+     * @return mixed
+     */
     protected function _isAllowed()
     {
         return Mage::getSingleton('admin/session')->isAllowed('admin/deliveryx');
@@ -15,6 +21,9 @@ class School_Deliveryx_Adminhtml_Deliveryx_DeliveryxgridController extends Mage_
         $this->renderLayout();
     }
 
+    /**
+     * @return $this
+     */
     protected function _initAction()
     {
         $this->loadLayout()
@@ -33,18 +42,17 @@ class School_Deliveryx_Adminhtml_Deliveryx_DeliveryxgridController extends Mage_
 
     /**
      * Edit action
+     * @throws Mage_Core_Exception
      */
     public function editAction()
     {
         $this->_initAction();
-        // Get id if available
-        $id  = $this->getRequest()->getParam('block_id');
+        $id  = $this->getRequest()->getParam('entity_id');
         $model = Mage::getModel('deliveryx/offices');
 
         if ($id) {
-            // Load record
             $model->load($id);
-            // Check if record is loaded
+
             if (!$model->getEntityId()) {
                 Mage::getSingleton('adminhtml/session')->addError(Mage::helper('deliveryx')->__('This office no longer exists.'));
                 $this->_redirect('*/*/office');
@@ -53,7 +61,7 @@ class School_Deliveryx_Adminhtml_Deliveryx_DeliveryxgridController extends Mage_
         }
 
         $this->_title($model->getEntityId() ? $model->getNumber() : $this->__('New OFFICE'));
-        $data = Mage::getSingleton('adminhtml/session')->getData(true);
+        $data = Mage::getSingleton('adminhtml/session')->getFormData(true);
 
         if (!empty($data)) {
             $model->setData($data);
@@ -68,66 +76,68 @@ class School_Deliveryx_Adminhtml_Deliveryx_DeliveryxgridController extends Mage_
 
     /**
      * Save action
+     *
      */
     public function saveAction()
     {
-        // check if data sent
         if ($data = $this->getRequest()->getPost()) {
             $data = $this->_filterPostData($data);
-            //init model and set data
             $model = Mage::getModel('deliveryx/offices');
 
-            if ($id = $this->getRequest()->getParam('block_id')) {
+            if ($id = $this->getRequest()->getParam('entity_id')) {
                 $model->load($id);
             }
 
             $model->addData($data);
 
             Mage::dispatchEvent('deliveryx_offices_prepare_save', array('offices' => $model, 'request' => $this->getRequest()));
-            //validating
             if (!$this->_validatePostData($data)) {
-                $this->_redirect('*/*/edit', array('block_id' => $model->getId(), '_current' => true));
+                $this->_redirect('*/*/edit', array('entity_id' => $model->getId(), '_current' => true));
                 return;
             }
-            // try to save it
             try {
-                // save the data
+                $model->validate();
                 $model->save();
-                // display success message
                 Mage::getSingleton('adminhtml/session')->addSuccess(
                     Mage::helper('cms')->__('The office has been saved.'));
-                // clear previously saved data from session
                 Mage::getSingleton('adminhtml/session')->setFormData(false);
-                // check if 'Save and Continue'
                 if ($this->getRequest()->getParam('back')) {
-                    $this->_redirect('*/*/edit', array('block_id' => $model->getId(), '_current'=>true));
+                    $this->_redirect('*/*/edit', array('entity_id' => $model->getId(), '_current' => true));
                     return;
                 }
-                // go to grid
                 $this->_redirect('*/*/offices');
                 return;
-
             } catch (Mage_Core_Exception $e) {
-                $this->_getSession()->addError($e->getMessage());
+                $this->_getSession()->addError($e->getMessage())
+                    ->setProductData($data);
             } catch (Exception $e) {
-                $this->_getSession()->addException($e,
-                    Mage::helper('adminhtml')->__('An error occurred while saving the office.'));
+                Mage::logException($e);
+                $this->_getSession()->addError($e->getMessage());
             }
 
             $this->_getSession()->setFormData($data);
-            $this->_redirect('*/*/edit', array('block_id' => $this->getRequest()->getParam('block_id')));
+            $this->_redirect('*/*/edit', array('entity_id' => $this->getRequest()->getParam('entity_id')));
             return;
         }
 
         $this->_redirect('*/*/offices');
     }
 
+    /**
+     * @param $data
+     * @return array
+     */
     protected function _filterPostData($data)
     {
         $data = $this->_filterDates($data, array('custom_theme_from', 'custom_theme_to'));
         return $data;
     }
 
+    /**
+     * @param $data
+     * @return bool
+     * @throws Exception
+     */
     protected function _validatePostData($data)
     {
         $errorNo = true;
@@ -153,35 +163,30 @@ class School_Deliveryx_Adminhtml_Deliveryx_DeliveryxgridController extends Mage_
      */
     public function deleteAction()
     {
-        // check if we know what should be deleted
-        if ($id = $this->getRequest()->getParam('block_id')) {
+        if ($id = $this->getRequest()->getParam('entity_id')) {
             $title = "";
             try {
-                // init model and delete
                 $model = Mage::getModel('deliveryx/offices');
                 $model->load($id);
                 $title = $model->getTitle();
                 $model->delete();
-                // display success message
                 Mage::getSingleton('adminhtml/session')->addSuccess(Mage::helper('deliveryx')->__('The office has been deleted.'));
-                // go to grid
                 $this->_redirect('*/*/offices');
                 return;
 
             } catch (Exception $e) {
-                // display error message
                 Mage::getSingleton('adminhtml/session')->addError($e->getMessage());
-                // go back to edit form
-                $this->_redirect('*/*/edit', array('block_id' => $id));
+                $this->_redirect('*/*/edit', array('entity_id' => $id));
                 return;
             }
         }
-        // display error message
         Mage::getSingleton('adminhtml/session')->addError(Mage::helper('deliveryx')->__('Unable to find a office to delete.'));
-        // go to grid
         $this->_redirect('*/*/office');
     }
 
+    /**
+     * Mass delete action
+     */
     public function massDeleteAction()
     {
         $officesIds = $this->getRequest()->getParam('deliveryx');

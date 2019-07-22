@@ -1,4 +1,7 @@
 <?php
+/**
+ * Class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid
+ */
 class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid extends Mage_Adminhtml_Block_Widget_Grid_Container
 {
     public function __construct()
@@ -18,7 +21,6 @@ class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid extends Mage_Adminhtm
 
     /**
      * Check permission for passed action
-     *
      * @param string $action
      * @return bool
      */

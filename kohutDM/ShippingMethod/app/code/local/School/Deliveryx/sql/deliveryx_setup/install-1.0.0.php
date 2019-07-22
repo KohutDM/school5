@@ -7,15 +7,16 @@ $installer->addEntityType('deliveryx_offices',Array(
     'table'                 =>'deliveryx/offices',
 ));
 
-//$installer->createEntityTables(
-//    $this->getTable('deliveryx/offices')
-//);
+$installer->createEntityTables(
+    $this->getTable('deliveryx/offices')
+);
 
 $this->addAttribute('deliveryx_offices', 'number', array(
-    //the EAV attribute type, NOT a MySQL varchar
-    'type'              => 'int',
+    'type'              => 'varchar',
     'label'             => 'Number',
     'input'             => 'text',
+    'frontend'          => '',
+    'unique'            => true
 ));
 $this->addAttribute('deliveryx_offices', 'short_address', array(
     'type'              => 'text',
@@ -31,17 +32,19 @@ $this->addAttribute('deliveryx_offices', 'work_status', array(
     'type'              => 'int',
     'label'             => 'Work Status',
     'input'             => 'select',
-    'source'            => 'eav/entity_attribute_source_boolean',
+    'source'            => 'adminhtml/system_config_source_yesno',
 ));
 $this->addAttribute('deliveryx_offices', 'opening', array(
-    'type'              => 'int',
+    'type'              => 'varchar',
     'label'             => 'Opening Time',
-    'input'             => 'select',
+    'input'             => 'time',
+    'backend'           => 'deliveryx/entity_attribute_backend_worktime'
 ));
 $this->addAttribute('deliveryx_offices', 'closing', array(
-    'type'              => 'int',
+    'type'              => 'varchar',
     'label'             => 'Closing Time',
-    'input'             => 'select',
+    'input'             => 'time',
+    'backend'           => 'deliveryx/entity_attribute_backend_worktime'
 ));
 
 $this->addAttribute('deliveryx_offices', 'min_weight', array(

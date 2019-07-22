@@ -1,4 +1,7 @@
 <?php
+/**
+ * Class School_Deliveryx_Model_Observer
+ */
 class School_Deliveryx_Model_Observer
 {
     /**
@@ -12,9 +15,9 @@ class School_Deliveryx_Model_Observer
 
         if (preg_match("/{$carrierCode}/i", $shippingMethod)){
             $strArray = explode('_', $shippingMethod);
-            $officeId = $strArray[2];
+            $officeNumber = $strArray[2];
 
-            $office = Mage::getModel('deliveryx/offices')->load($officeId);
+            $office = Mage::getModel('deliveryx/offices')->load($officeNumber, 'number');
 
             $quote = $observer->getQuote()
               ->getShippingAddress()

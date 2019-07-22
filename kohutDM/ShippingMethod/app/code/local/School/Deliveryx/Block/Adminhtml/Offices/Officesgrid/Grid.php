@@ -1,4 +1,7 @@
 <?php
+/**
+ * Class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Grid
+ */
 class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
     public function __construct()
@@ -11,11 +14,17 @@ class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Grid extends Mage_Adm
         $this->setSaveParametersInSession(true);
     }
 
+    /**
+     * @return string
+     */
     protected function _getCollectionClass()
     {
         return 'deliveryx/offices_collection';
     }
 
+    /**
+     * @return Mage_Adminhtml_Block_Widget_Grid
+     */
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel($this->_getCollectionClass());
@@ -32,6 +41,10 @@ class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Grid extends Mage_Adm
         return parent::_prepareCollection();
     }
 
+    /**
+     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @throws Exception
+     */
     protected function _prepareColumns()
     {
 
@@ -113,9 +126,13 @@ class School_Deliveryx_Block_Adminhtml_Offices_Officesgrid_Grid extends Mage_Adm
         return parent::_prepareColumns();
     }
 
+    /**
+     * @param $row
+     * @return string
+     */
     public function getRowUrl($row)
     {
-        return $this->getUrl('*/*/edit', array('block_id' => $row->getId()));
+        return $this->getUrl('*/*/edit', array('entity_id' => $row->getId()));
     }
 
     protected function _prepareMassaction()

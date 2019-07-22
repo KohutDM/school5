@@ -1,7 +1,13 @@
 <?php
+/**
+ * Class School_Deliveryx_Model_Carrier
+ */
 class School_Deliveryx_Model_Carrier extends Mage_Shipping_Model_Carrier_Abstract
     implements Mage_Shipping_Model_Carrier_Interface
 {
+    const YES = 1;
+    const NO = 0;
+
     protected $_code = 'deliveryx';
 
     /**
@@ -20,98 +26,64 @@ class School_Deliveryx_Model_Carrier extends Mage_Shipping_Model_Carrier_Abstrac
         return $purchaseWeight;
     }
 
+    /**
+     * @param Mage_Shipping_Model_Rate_Request $request
+     * @return bool|false|Mage_Core_Model_Abstract|Mage_Shipping_Model_Rate_Result|null
+     */
     public function collectRates(Mage_Shipping_Model_Rate_Request $request)
     {
         /* @var $result Mage_Shipping_Model_Rate_Result */
+        $allItemWeight = $this->calculateAllItemWeight($request->getAllItems());
+        $isFreeShoppingAllowed = $request->getFreeShipping() && $this->getConfigData('free_shipping_enabled');
+
         $result = Mage::getModel('shipping/rate_result');
 
         $destCountryId = $request->getDestCountryId();
 
-        /**
-         * Collection of enable offices (select by work_status, max_weight, min_weight and country_id)
-         */
         $enableDeliveryxOffices = Mage::getResourceModel('deliveryx/offices_collection')
             ->addAttributeToSelect('*')
             ->addAttributeToFilter('country_id', $destCountryId)
-            ->addAttributeToFilter('work_status',1)
-            ->addAttributeToFilter('max_weight', array('gteq' => $this->calculateAllItemWeight($request->getAllItems())))
-            ->addAttributeToFilter('min_weight', array('lteq' => $this->calculateAllItemWeight($request->getAllItems())));
+            ->addAttributeToFilter('work_status',self::YES)
+            ->addAttributeToFilter('max_weight', array('gteq' => $allItemWeight))
+            ->addAttributeToFilter('min_weight', array('lteq' => $allItemWeight));
 
-        if ($enableDeliveryxOffices->count()){
-            foreach ($enableDeliveryxOffices as $office){
-                $result->append($this->_getStandardShippingRate($office->getEntityId(), $office->getNumber(), $office->getShortAddress()));
+        //method name must be written in one word without snake case "_"
+        foreach ($enableDeliveryxOffices as $office){
+            $result->append($this->_getShippingRate('standard_' . $office->getNumber(), $this->getConfigData('standard_method_price')));
+            if ($isFreeShoppingAllowed) {
+                foreach ($enableDeliveryxOffices as $office) {
+                    $result->append($this->_getShippingRate('freeShipping_' . $office->getNumber(), 0));
+                }
             }
-        }
-
-        if ($enableDeliveryxOffices->count() && $request->getFreeShipping() && $this->getConfigData('free_shipping_enabled')) {
-            foreach ($enableDeliveryxOffices as $office) {
-                $result->append($this->_getFreeShippingRate($office->getEntityId(), $office->getNumber(), $office->getShortAddress()));
-            }
-        }
-
-        if ($enableDeliveryxOffices->count()) {
-            foreach ($enableDeliveryxOffices as $office) {
-                $result->append($this->_getExpressShippingRate($office->getEntityId(), $office->getNumber(), $office->getShortAddress()));
-            }
+            $result->append($this->_getShippingRate('express_' . $office->getNumber(), $this->getConfigData('express_method_price')));
         }
 
         return $result;
     }
 
-    protected function _getStandardShippingRate($id, $number, $address)
+    /**
+     * @param $method
+     * @param $price
+     * @return false|Mage_Core_Model_Abstract
+     */
+    protected function _getShippingRate ($method, $price)
     {
-        /* @var $rate Mage_Shipping_Model_Rate_Result_Method */
         $rate = Mage::getModel('shipping/rate_result_method');
         $rate->setCarrier($this->_code);
         $rate->setCarrierTitle($this->getConfigData('title'));
-        /**
-         * method name must be written in one word without snake case "_"
-         */
-        $rate->setMethod('standand_' . $id);
-        $rate->setMethodTitle('Office ' . $number . ', address ' . $address . ' standard');
 
-        $rate->setPrice($this->getConfigData('standard_method_price'));
+        $rate->setMethod($method);
+        $rate->setMethodTitle($method);
+
+        $rate->setPrice($price);
         $rate->setCost(0);
 
         return $rate;
     }
 
-    protected function _getExpressShippingRate($id, $number, $address)
-    {
-        /* @var $rate Mage_Shipping_Model_Rate_Result_Method */
-        $rate = Mage::getModel('shipping/rate_result_method');
-        $rate->setCarrier($this->_code);
-        $rate->setCarrierTitle($this->getConfigData('title'));
-        /**
-         * method name must be written in one word without snake case "_"
-         */
-        $rate->setMethod('express_' . $id);
-        $rate->setMethodTitle('Office ' . $number . ', address ' . $address . ' express');
-
-        $rate->setPrice($this->getConfigData('express_method_price'));
-        $rate->setCost(0);
-
-        return $rate;
-    }
-
-    protected function _getFreeShippingRate($id, $number, $address)
-    {
-        /* @var $rate Mage_Shipping_Model_Rate_Result_Method */
-        $rate = Mage::getModel('shipping/rate_result_method');
-        $rate->setCarrier($this->_code);
-        $rate->setCarrierTitle($this->getConfigData('title'));
-        /**
-         * method name must be written in one word without snake case "_"
-         */
-        $rate->setMethod('freeShipping_' . $id);
-        $rate->setMethodTitle('Office ' . $number . ', address ' . $address . ' free shipping');
-
-        $rate->setPrice(0);
-        $rate->setCost(0);
-
-        return $rate;
-    }
-
+    /**
+     * @return array
+     */
     public function getAllowedMethods()
     {
         return array(
